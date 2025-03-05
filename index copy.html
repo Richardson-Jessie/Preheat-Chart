@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preheat Determination Chart</title>
+    <title>Preheat Determination Charts</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
@@ -16,6 +16,7 @@
             display: block;
             margin: auto;
             margin-bottom: 20px; /* Add space between charts */
+            border: 2px solid black; /* Add border to SVG */
         }
         .highlight {
             stroke: red !important;
@@ -28,7 +29,8 @@
     </style>
 </head>
 <body>
-    <h2>Material Groups</h2>
+    <h1>Preheat Determination Charts</h1>
+    <h2>Parameters</h2>
     <label for="groupLabel">Group Label (A-L):</label>
     <select id="groupLabel" onchange="highlightLine()">
         <option value="A">A</option>
@@ -44,7 +46,17 @@
         <option value="K">K</option>
         <option value="L">L</option>
     </select>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;"></div>
+        <label for="heatInput">HEAT INPUT (Q), kj/mm:</label>
+        <input type="range" id="heatInput" name="heatInput" min="0" max="6" step="0.1" value="0" oninput="updateHeatInput(this.value)">
+        <span id="heatInputValue">0</span>
+    </div>
+
+
+    
+    <h2>Material Groups</h2>
     <svg id="chart1" width="800" height="600"></svg>
+    <h2>Preheat Determination</h2>
     <svg id="chart2" width="800" height="600"></svg>
 
     <script>
@@ -211,14 +223,14 @@
             .text("Y Axis Label");
 
         const data2 = [
-            { label: 'B', start: { x: 1, y: 25 }, end: { x: 1.3, y: 0 } },
+            { label: 'B', start: { x: 1.0, y: 25 }, end: { x: 1.2, y: 0 } },
             { label: 'C', start: { x: 1.2, y: 50 }, end: { x: 1.6, y: 0 } },
-            { label: 'D', start: { x: 1.3, y: 55 }, end: { x: 2.2, y: 0 } },
+            { label: 'D', start: { x: 1.3, y: 75 }, end: { x: 2.2, y: 0 } },
             { label: 'E', start: { x: 1.5, y: 100 }, end: { x: 3.1, y: 0 } },
             { label: 'F', start: { x: 1.6, y: 125 }, end: { x: 4.2, y: 0 } },
             { label: 'G', start: { x: 1.8, y: 150 }, end: { x: 5.6, y: 0 } },
-            { label: 'H', start: { x: 1.9, y: 175 }, end: { x: 5.5, y: 35 } },
-            { label: 'I', start: { x: 1.9, y: 200 }, end: { x: 6, y: 75 } },
+            { label: 'H', start: { x: 1.9, y: 175 }, end: { x: 6, y: 35 } },
+            { label: 'I', start: { x: 1.9, y: 200 }, end: { x: 6, y: 80 } },
             { label: 'J', start: { x: 1.6, y: 225 }, end: { x: 6, y: 120 } },
             { label: 'K', start: { x: 1.2, y: 250 }, end: { x: 6, y: 155 } },
             { label: 'L', start: { x: 1.5, y: 250 }, end: { x: 6, y: 185 } }   
@@ -275,10 +287,17 @@
         function highlightLine() {
             const groupLabel = document.getElementById("groupLabel").value;
 
-            let closestIndex = 0;
+            let closestIndex1 = 0;
+            let closestIndex2 = 0;
             groups.forEach((group, index) => {
                 if (group.label === groupLabel) {
-                    closestIndex = index;
+                    closestIndex1 = index;
+                }
+            });
+            
+            data2.forEach((group, index) => {
+                if (group.label === groupLabel) {
+                    closestIndex2 = index;
                 }
             });
 
@@ -293,30 +312,37 @@
 
             // Add highlight class to the selected path and line in chart1
             paths1.forEach((path, index) => {
-                path.classed("highlight", index === closestIndex);
+                path.classed("highlight", index === closestIndex1);
             });
 
             horizontalLines1.forEach((line, index) => {
-                line.classed("highlight", index === closestIndex);
+                line.classed("highlight", index === closestIndex1);
             });
 
-            // Remove highlight class from all paths and lines in chart2
-            paths2.forEach(path => {
-                path.classed("highlight", false);
-            });
+            if (groupLabel !== "A") {
+                // Remove highlight class from all paths and lines in chart2
+                paths2.forEach(path => {
+                    path.classed("highlight", false);
+                });
 
-            horizontalLines2.forEach(line => {
-                line.classed("highlight", false);
-            });
+                horizontalLines2.forEach(line => {
+                    line.classed("highlight", false);
+                });
 
-            // Add highlight class to the selected path and line in chart2
-            paths2.forEach((path, index) => {
-                path.classed("highlight", index === closestIndex);
-            });
+                // Add highlight class to the selected path and line in chart2
+                paths2.forEach((path, index) => {
+                    path.classed("highlight", index === closestIndex2);
+                });
 
-            horizontalLines2.forEach((line, index) => {
-                line.classed("highlight", index === closestIndex);
-            });
+                horizontalLines2.forEach((line, index) => {
+                    line.classed("highlight", index === closestIndex2);
+                });
+            }
+        }
+
+        function updateHeatInput(value) {
+            document.getElementById("heatInputValue").textContent = value;
+            // You can add additional logic here to update the charts based on the heat input value
         }
 
         // Initial highlight

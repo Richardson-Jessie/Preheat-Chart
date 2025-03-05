@@ -46,14 +46,12 @@
         <option value="K">K</option>
         <option value="L">L</option>
     </select>
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;"></div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
         <label for="heatInput">HEAT INPUT (Q), kj/mm:</label>
         <input type="range" id="heatInput" name="heatInput" min="0" max="6" step="0.1" value="0" oninput="updateHeatInput(this.value)">
         <span id="heatInputValue">0</span>
     </div>
 
-
-    
     <h2>Material Groups</h2>
     <svg id="chart1" width="800" height="600"></svg>
     <h2>Preheat Determination</h2>
@@ -210,7 +208,7 @@
             .attr("y", height2 - margin2.bottom / 4)
             .attr("text-anchor", "middle")
             .attr("fill", "black")
-            .text("X Axis Label");
+            .text("Heat Input (Q), kj/mm");
 
         // Add Y-axis label
         svg2.append("text")
@@ -220,7 +218,7 @@
             .attr("dy", "-1em")
             .attr("text-anchor", "middle")
             .attr("fill", "black")
-            .text("Y Axis Label");
+            .text("Minimum Preheat Temperature, °C");
 
         const data2 = [
             { label: 'B', start: { x: 1.0, y: 25 }, end: { x: 1.2, y: 0 } },
@@ -247,7 +245,7 @@
         data2.forEach(group => {
             const points = d3.range(10).map(i => ({
                 x: group.start.x + (group.end.x - group.start.x) * (i / 9),
-                y: group.start.y + (group.end.y - group.start.y) * Math.sin((i / 9) * Math.PI / 2)
+                y: group.start.y + (group.end.y - group.start.y) * (i / 9)
             }));
 
             const path = svg2.append("path")
@@ -283,6 +281,16 @@
                 .attr("fill", "blue") // Changed to blue
                 .text(group.label);
         });
+
+        // Add vertical line for heat input
+        const heatInputLine = svg2.append("line")
+            .attr("x1", xScale2(0))
+            .attr("y1", margin2.top)
+            .attr("x2", xScale2(0))
+            .attr("y2", height2 - margin2.bottom)
+            .attr("stroke", "red")
+            .attr("stroke-width", 2)
+            .attr("id", "heatInputLine");
 
         function highlightLine() {
             const groupLabel = document.getElementById("groupLabel").value;
@@ -342,7 +350,25 @@
 
         function updateHeatInput(value) {
             document.getElementById("heatInputValue").textContent = value;
-            // You can add additional logic here to update the charts based on the heat input value
+
+            const groupLabel = document.getElementById("groupLabel").value;
+            const group = data2.find(g => g.label === groupLabel);
+
+            if (group) {
+                const x = parseFloat(value);
+                const y = group.start.y + (group.end.y - group.start.y) * (x - group.start.x) / (group.end.x - group.start.x);
+                document.getElementById("heatInputValue").textContent = `Heat Input: ${x}, Y value: ${y}`;
+
+                console.log(`Heat Input: ${x}, Y value: ${y}`); // Debugging log
+
+                // Update the position of the vertical line
+                d3.select("#heatInputLine")
+                    .attr("x1", xScale2(x))
+                    .attr("x2", xScale2(x));
+
+                // Debugging log for line position
+                console.log
+            }
         }
 
         // Initial highlight
