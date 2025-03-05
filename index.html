@@ -32,7 +32,7 @@
     <h1>Preheat Determination Charts</h1>
     <h2>Parameters</h2>
     <label for="groupLabel">Group Label (A-L):</label>
-    <select id="groupLabel" onchange="highlightLine()">
+    <select id="groupLabel" onchange="highlightLine(); updateHeatInput(document.getElementById('heatInput').value);">
         <option value="A">A</option>
         <option value="B">B</option>
         <option value="C">C</option>
@@ -48,7 +48,7 @@
     </select>
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
         <label for="heatInput">HEAT INPUT (Q), kj/mm:</label>
-        <input type="range" id="heatInput" name="heatInput" min="0" max="6" step="0.1" value="0" oninput="updateHeatInput(this.value)">
+        <input type="range" id="heatInput" name="heatInput" min="0" max="6" step="0.5" value="0" oninput="updateHeatInput(this.value)">
         <span id="heatInputValue">0</span>
     </div>
 
@@ -346,18 +346,20 @@
                     line.classed("highlight", index === closestIndex2);
                 });
             }
+
+            // Update the Y value when changing the groupLabel parameter
+            updateHeatInput(document.getElementById('heatInput').value);
         }
 
         function updateHeatInput(value) {
-            document.getElementById("heatInputValue").textContent = value;
-
+            const heatInputValueElement = document.getElementById("heatInputValue");
             const groupLabel = document.getElementById("groupLabel").value;
             const group = data2.find(g => g.label === groupLabel);
 
             if (group) {
                 const x = parseFloat(value);
                 const y = group.start.y + (group.end.y - group.start.y) * (x - group.start.x) / (group.end.x - group.start.x);
-                document.getElementById("heatInputValue").textContent = `Heat Input: ${x}, Y value: ${y}`;
+                heatInputValueElement.textContent = `Heat Input: ${x}, Y value: ${y}`;
 
                 console.log(`Heat Input: ${x}, Y value: ${y}`); // Debugging log
 
@@ -365,9 +367,6 @@
                 d3.select("#heatInputLine")
                     .attr("x1", xScale2(x))
                     .attr("x2", xScale2(x));
-
-                // Debugging log for line position
-                console.log
             }
         }
 
